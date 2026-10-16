@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Communication Tool - 40 Topics</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-indigo-600 text-white shadow-md py-4 px-6">
+        <div class="max-w-3xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
+            <h1 class="text-xl font-bold tracking-wide">💡 English Daily Communication</h1>
+            <!-- Menu Topic Dropdown -->
+            <div class="w-full sm:w-auto">
+                <select id="topicSelect" onchange="switchTopic(this.value)" class="w-full sm:w-64 bg-indigo-700 text-white font-medium py-2 px-3 rounded-lg border border-indigo-500 focus:outline-none focus:ring-2 focus:ring-white">
+                    <!-- Danh sách topic sẽ tự động load ở đây -->
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container (Tab gọn gàng, cố định chiều cao hợp lý) -->
+    <main class="flex-grow max-w-3xl w-full mx-auto p-4 sm:p-6">
+        
+        <!-- Control Panel: Nút Ẩn/Hiện -->
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-4 flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h2 id="currentTopicTitle" class="text-lg font-semibold text-indigo-900">Đang tải chủ đề...</h2>
+                <p class="text-xs text-slate-500">Bấm vào bất kỳ từ tiếng Anh nào để xem nhanh nghĩa và IPA.</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <button onclick="toggleAllIPA()" id="btnIPA" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-md border border-slate-300 transition">Ẩn/Hiện IPA</button>
+                <button onclick="toggleAllVN()" id="btnVN" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium px-3 py-1.5 rounded-md border border-slate-300 transition">Ẩn/Hiện Nghĩa</button>
+            </div>
+        </div>
+
+        <!-- Dialogue Box -->
+        <div id="dialogueContainer" class="space-y-4">
+            <!-- Các câu hội thoại sẽ được render tại đây -->
+        </div>
+
+    </main>
+
+    <!-- Word Inspector Modal / Popup Nhỏ bên dưới -->
+    <div id="wordPopup" class="fixed bottom-0 left-0 right-0 bg-slate-900 text-white p-4 shadow-lg transform translate-y-full transition-transform duration-300 z-50">
+        <div class="max-w-3xl mx-auto flex justify-between items-center">
+            <div>
+                <span id="popupWord" class="text-lg font-bold text-yellow-400">Word</span>
+                <span id="popupIpa" class="text-sm text-slate-300 ml-2">/ipa/</span>
+                <p id="popupMeaning" class="text-sm text-slate-100 font-medium mt-0.5">Nghĩa tiếng Việt ở đây</p>
+            </div>
+            <button onclick="closePopup()" class="text-slate-400 hover:text-white text-sm bg-slate-800 px-3 py-1 rounded">Đóng ✕</button>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-4 text-xs text-slate-400 border-t border-slate-200">
+        Oxford 3000 Vocabulary • Giao tiếp chuẩn hóa tốc độ 0.8x
+    </footer>
+
+    <!-- JavaScript Xử Lý Logic -->
+    <script>
+        // =========================================================================
+        // 📌 KHU VỰC DÁN DỮ LIỆU TOPIC (BẠN SẼ DÁN CÁC TOPIC TIẾP THEO VÀO DƯỚI NÀY)
+        // =========================================================================
+        const topicsData = [
+            {
+                id: 1,
+                title: "Topic 1: Chào hỏi và làm quen (Greeting & Meeting)",
+                dialogues: [
+                    {
+                        speaker: "A",
+                        text: "Hello! Nice to meet you.",
+                        ipa: "/həˈloʊ naɪs tu mit ju/",
+                        vn: "Xin chào! Rất vui được gặp bạn.",
+                        words: [
+                            {w: "Hello!", ipa: "/həˈloʊ/", meaning: "Xin chào"},
+                            {w: "Nice", ipa: "/naɪs/", meaning: "Đẹp, vui vẻ"},
+                            {w: "to", ipa: "/tu/", meaning: "đến, để"},
+                            {w: "meet", ipa: "/mit/", meaning: "gặp gỡ"},
+                            {w: "you.", ipa: "/ju/", meaning: "bạn"}
+                        ]
+                    },
+                    {
+                        speaker: "B",
+                        text: "Hi there! Nice to meet you too.",
+                        ipa: "/haɪ ðɛr naɪs tu mit ju tu/",
+                        vn: "Chào bạn! Mình cũng rất vui được gặp bạn.",
+                        words: [
+                            {w: "Hi", ipa: "/haɪ/", meaning: "Chào"},
+                            {w: "there!", ipa: "/ðɛr/", meaning: "ở đó"},
+                            {w: "too.", ipa: "/tu/", meaning: "cũng vậy"}
+                        ]
+                    },
+                    {
+                        speaker: "A",
+                        text: "How are things going recently?",
+                        ipa: "/haʊ ɑr θɪŋz ˈgoʊɪŋ ˈrisəntli/",
+                        vn: "Dạo này mọi việc thế nào rồi?",
+                        words: [
+                            {w: "How", ipa: "/haʊ/", meaning: "Như thế nào"},
+                            {w: "are", ipa: "/ɑr/", meaning: "thì, là, ở"},
+                            {w: "things", ipa: "/θɪŋz/", meaning: "mọi việc, sự vật"},
+                            {w: "going", ipa: "/ˈgoʊɪŋ/", meaning: "đang diễn ra"},
+                            {w: "recently?", ipa: "/ˈrisəntli/", meaning: "gần đây"}
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 2,
+                title: "Topic 2: Hỏi đường đi lối lại (Asking for Directions)",
+                dialogues: [
+                    {
+                        speaker: "A",
+                        text: "Excuse me, where is the station?",
+                        ipa: "/ɪkˈskyuz mi wɛr ɪz ðə ˈsteɪʃən/",
+                        vn: "Xin lỗi, nhà ga ở đâu vậy?",
+                        words: [
+                            {w: "Excuse", ipa: "/ɪkˈskyuz/", meaning: "Tha lỗi, xin lỗi"},
+                            {w: "me,", ipa: "/mi/", meaning: "tôi"},
+                            {w: "where", ipa: "/wɛr/", meaning: "ở đâu"},
+                            {w: "station?", ipa: "/ˈsteɪʃən/", meaning: "nhà ga"}
+                        ]
+                    },
+                    {
+                        speaker: "B",
+                        text: "Go straight and turn left at the corner.",
+                        ipa: "/goʊ streɪt ænd tɜrn lɛft æt ðə ˈkɔrnər/",
+                        vn: "Đi thẳng và rẽ trái ở góc phố.",
+                        words: [
+                            {w: "Go", ipa: "/goʊ/", meaning: "Đi"},
+                            {w: "straight", ipa: "/streɪt/", meaning: "thẳng"},
+                            {w: "turn", ipa: "/tɜrn/", meaning: "rẽ"},
+                            {w: "left", ipa: "/lɛft/", meaning: "bên trái"},
+                            {w: "corner.", ipa: "/ˈkɔrnər/", meaning: "góc đường"}
+                        ]
+                    }
+                ]
+            }
+            // 👉 LƯU Ý DÒNG DÁN: Khi tôi gửi thêm các topic từ 3 đến 40, bạn chỉ cần copy các khối tương tự ở trên và dán nối tiếp vào đây (ngay trước dấu ngoặc vuông vuông ']');
+        ];
+        // =========================================================================
+
+        let currentTopicId = 1;
+        let showIPAState = true;
+        let showVNState = true;
+
+        // Khởi tạo ứng dụng khi load trang
+        window.onload = function() {
+            renderTopicDropdown();
+            loadTopic(1);
+        };
+
+        // Đổ dữ liệu vào menu dropdown
+        function renderTopicDropdown() {
+            const select = document.getElementById('topicSelect');
+            select.innerHTML = '';
+            topicsData.forEach(topic => {
+                const option = document.createElement('option');
+                option.value = topic.id;
+                option.textContent = topic.title;
+                select.appendChild(option);
+            });
+        }
+
+        // Chuyển topic khi chọn dropdown
+        function switchTopic(id) {
+            currentTopicId = parseInt(id);
+            loadTopic(currentTopicId);
+        }
+
+        // Load và render nội dung topic lên màn hình
+        function loadTopic(id) {
+            const topic = topicsData.find(t => t.id === id);
+            if (!topic) return;
+
+            document.getElementById('currentTopicTitle').textContent = topic.title;
+            const container = document.getElementById('dialogueContainer');
+            container.innerHTML = '';
+
+            topic.dialogues.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col gap-2 relative transition hover:border-indigo-300";
+                
+                // Xây dựng chuỗi các từ có thể bấm tra cứu
+                let clickableWordsHtml = item.words.map(w => 
+                    `<span onclick="inspectWord('${w.w}', '${w.ipa}', '${w.meaning}')" class="cursor-pointer hover:bg-indigo-100 hover:text-indigo-700 px-1 rounded transition">${w.w}</span>`
+                ).join(' ');
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="text-xs font-bold uppercase tracking-wider px-2 py-0.5 bg-indigo-50 text-indigo-700 rounded">Speaker ${item.speaker}</span>
+                        <!-- Nút phát âm tốc độ 0.8 -->
+                        <button onclick="speakText('${item.text.replace(/'/g, "\\'")}')" class="flex items-center gap-1 text-xs bg-indigo-600 hover:bg-indigo-700 text-white px-2.5 py-1 rounded-md transition shadow-sm">
+                            🔊 Nghe (0.8x)
+                        </button>
+                    </div>
+                    <!-- Câu phân tích từ -->
+                    <div class="text-base font-semibold text-slate-800 leading-relaxed mt-1">
+                        ${clickableWordsHtml}
+                    </div>
+                    <!-- IPA -->
+                    <div class="text-xs text-indigo-600 font-mono ipa-line ${showIPAState ? '' : 'hidden'}">
+                        ${item.ipa}
+                    </div>
+                    <!-- Nghĩa Tiếng Việt -->
+                    <div class="text-sm text-slate-600 italic vn-line ${showVNState ? '' : 'hidden'}">
+                        ${item.vn}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        // Hàm phát âm sử dụng SpeechSynthesis chuẩn tốc độ 0.8
+        function speakText(text) {
+            if (!('speechSynthesis' in window)) {
+                alert("Trình duyệt của bạn không hỗ trợ phát âm thanh trực tiếp.");
+                return;
+            }
+            window.speechSynthesis.cancel(); // Dừng các âm thanh đang chạy trước đó
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = 'en-US';
+            utterance.rate = 0.8; // Yêu cầu tốc độ 0.8x
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // Bấm vào từ để xem thông tin chi tiết (Popup nhỏ)
+        function inspectWord(word, ipa, meaning) {
+            document.getElementById('popupWord').textContent = word;
+            document.getElementById('popupIpa').textContent = ipa;
+            document.getElementById('popupMeaning').textContent = meaning;
+            
+            const popup = document.getElementById('wordPopup');
+            popup.classList.remove('translate-y-full');
+        }
+
+        function closePopup() {
+            document.getElementById('wordPopup').classList.add('translate-y-full');
+        }
+
+        // Ẩn/Hiện toàn bộ IPA
+        function toggleAllIPA() {
+            showIPAState = !showIPAState;
+            document.querySelectorAll('.ipa-line').forEach(el => {
+                if (showIPAState) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
+        }
+
+        // Ẩn/Hiện toàn bộ Nghĩa Tiếng Việt
+        function toggleAllVN() {
+            showVNState = !showVNState;
+            document.querySelectorAll('.vn-line').forEach(el => {
+                if (showVNState) el.classList.remove('hidden');
+                else el.classList.add('hidden');
+            });
+        }
+    </script>
+</body>
+</html>
